@@ -1,0 +1,156 @@
+---
+title: "Regression models. Assingment"
+author: tonuta
+date: December 4, 2016
+output: pdf_document
+---
+## Regression Models Course   - *Project*
+
+Clean the environment.
+```{r, echo = TRUE}
+rm(list = ls())
+```
+Install some R packages and upload libraries.
+install.packages("knitr")
+install.packages("markdown")
+library(knitr)
+library(markdown)
+
+#### **Synopsis.**
+
+This project of the Regression Models course is an analysis the $mtcars$ data set and an investigation of the relationship between a set of variables and miles per gallon (MPG). The data is extracted from the 1974 Motor Trend US magazine, and comprises fuel consumption and 10 aspects of automobile design and performance for 32 automobiles (1973-74 models).
+
+
+#### **Project assignment.**
+
+The main objectives of this investigation are:
+
+a) to compare cars with automatic and manual transmission and determine which car transmission is better for MPG.
+b) to quantify how different is the MPG between automatic and manual transmissions.
+
+#### **Step 1: Perform the data exploration.**
+
+```{r, echo = TRUE}
+### Upload data from R repositories. 
+data(mtcars)
+```
+
+```{r, echo = TRUE, results = "hide"}
+### Take a look at the uploaded data.
+str(mtcars) # results are hidden
+```
+
+```{r, echo = TRUE}
+### Make the necessary variables as factors.
+mtcars$cyl <- factor(mtcars$cyl)
+mtcars$vs <- factor(mtcars$vs)
+mtcars$gear <- factor(mtcars$gear)
+mtcars$carb <- factor(mtcars$carb)
+mtcars$am <- factor(mtcars$am, labels = c('Automatic','Manual'))
+```
+
+```{r, echo = TRUE}
+### Take a look at the data after factorization of the variables.
+str(mtcars)
+```
+
+```{r, echo = TRUE}
+### Make pair plots of the $mtcars$ data for a better visual data exploration.
+pairs(mpg ~ ., data = mtcars, main = "Graphs of motor trend car road tests", 
+      panel = panel.smooth)
+```
+
+
+From these pair plots, we notice that some variables ($cyl$, $disp$, $hp$, $drat$, $wt$, $vs$ and $am$) display strong correlation with $MPG$.
+
+The project is related in particular to the study of the $MPG$ as a function of the type transmission. The plot related to this particular dependence is shown downwards:
+
+```{r, echo = TRUE}
+boxplot(mpg ~ am, data = mtcars, col = (c("blue","red")), ylab = "Miles per gallon (MPG)", 
+        xlab = "Transmission type", 
+        main = "Miles per gallon (MPG) for cars with different transmission")
+```
+
+From the above plot, one can say that thre is an increase in the $MPG$ when using a manual transmission.
+
+#### **Step 2: Perform the regression analysis.**
+
+#### **Step 2.1: Detail a strategy for model building and selection**.
+
+The strategy for model building should be based first on a linear model that includes all variables as predictors of $MPG$ as follows:
+
+```{r, echo = TRUE}
+overall.model <- lm(mpg ~ ., data = mtcars)
+summary(overall.model)
+```
+One can see that adjusted $R-squared$ $value$ is 0.78 (again, the maximum adjusted $R-squared$ $value$ obtained considering all combinations of variables. The conclusion is than 78% of the variance of the $MPG$ variable is explained by the model that includes the following variables: $cyl$, $disp$, $hp$, $drat$, $wt$, $vs$ and $am$. Also, all of the coefficients are NOT significant at 0.05 significant level.
+
+
+A selection of the best model with significant predictors must be chosen from this first overall linear model. The selection of the best model is done by using a stepwise model selection as follows:
+
+```{r, echo = TRUE, eval = TRUE, results = "hide"}
+model.for.analysis <- step(overall.model, direction = "both") # ... using both forward selection and backward elimination methods using AIC algorithm. Use echo = TRUE to see of the possible selections with all possible combinations of variables.
+```
+
+```{r, echo = TRUE}
+summary(model.for.analysis) # description of the best linear model.
+```
+
+One can see that adjusted $R-squared$ $value$ is 0.84 (again, the maximum adjusted $R-squared$ $value$ obtained considering all combinations of variables. The conclusion is than 84% of the variance of the $MPG$ variable is explained by the model that includes the following variables: $cyl$, $hp$, $wt$, and $am$. Also, all of the coefficients are significant at 0.05 significant level.
+
+
+Another part of the model selection strategy is to compare the previous model with the simplest model containing only 
+$am$ as a predictor.
+
+```{r, echo = TRUE}
+basic.model <- lm(mpg ~ am, data = mtcars)
+anova(basic.model, model.for.analysis)
+```
+
+The p-value is highly significant and we reject the null hypothesis that the confounder variables cyl, hp and wt don't contribute to the accuracy of the model.
+
+#### **Step 2.2: Perform residual analysis and diagnostics**.
+
+One of the reasons of investigated the residuals is to find leverage points and any related potential problems with the linear model. The residual plots of our regression model along with computation of regression diagnostics for our liner model are shown downwards:
+
+```{r, echo = TRUE}
+par(mfrow=c(2, 2))
+plot(model.for.analysis)
+```
+
+One can verify the following assumptions, according with the residual plots of our regression model.
+
+- The Residuals vs. Fitted plot shows no consistent pattern, supporting the assumption of data independence.
+- The Normal Q-Q plot shows that the residuals are normally distributed because the points lie closely to the line.
+- The Scale-Location plot conforms the constant variance assumption, as the points are randomly distributed.
+- The Residuals vs. Leverage plot shows that there are no outliers (all values fall within the 0.5 bands).
+
+```{r, echo = TRUE}
+sum((abs(dfbetas(model.for.analysis))) > 1)
+```
+
+A measure of how an observation affects an estimiate of the regression model is the sum of $dfbetas$. This summation of $dfbetas$ is zero, thusthe performed analysis meets all the assumptions of a linear regression.
+
+#### **Step 3: Perform statistical inference**.
+
+Assuming that the transmission data has a normal distribution, a t-test on the two subsets of mpg data: manual and automatic transmission can be performed. The t-test can help accept/reject the null hypothesis that they come from the same distribution.
+
+```{r, echo = TRUE}
+t.test(mpg ~ am, data = mtcars)
+```
+
+The t-test results shows that one rejects the null hypothesis, Thus the $MPG$ distributions for manual and automatic transmissions are the same.
+
+#### **Step 4: Conclusions**.
+
+The performed analysis shows that cars with manual transmission get 1.8 more miles per gallon compared to cars with automatic transmission. (1.8 adjusted for $hp$, $cyl$, and $wt$). A plot of the $MPG$ vs. weight by transmission could help having a better insite in drawing a better coclusion about the influence of other variables when analysing the transmission type on $MPG$.
+
+```{r, echo = TRUE}
+plot(mpg ~ wt, col = am, data = mtcars, ylab = "Miles per gallon (MPG)", 
+     xlab = "Weight(tons)", main = "$MPG$ vs. weight by transmission")
+legend("topright", legend = c("Manual", "Automatic"), col = c("red", "black"),  
+       pch = c(1,1))
+```
+
+
+
