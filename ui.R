@@ -85,8 +85,10 @@ shinyUI(
                    
                    
                    tabPanel("Documentation",
-                            p(""),
-                            a("")
+                            p("Here there are some documentation about the mtcars data, plotting methods, 
+                              regression calculations. Also, the plot using the scatterD3 package 
+                              is only for demostration; it cannot change the variables as in the 2D plot."),
+                            a("https://github.com/tonuta/Developing-Data-Products---Part-1/tree/master/Documentation")
                            
                    )
         )

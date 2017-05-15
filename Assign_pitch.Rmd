@@ -1,0 +1,78 @@
+---
+title: "Developing Data Products- Project's Part 2 -Reproducible Pitch Presentation"
+author: "tonuta"
+date: "May 14, 2017"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+## Slide 2
+
+Developing an App: Relationship between variables and MPG based on mtcars dataset.
+
+Shiny Application:
+
+URL: https://tonuta.shinyapps.io/Developing-Data-Products---Part-1/
+
+A shiny-App shows the relationship between variables and miles per gallon (MPG).
+
+Get all SourceCode @Github:
+https://github.com/tonuta/Developing-Data-Products---Part-1
+
+## Slide 3
+
+mtcars dataset - Description (from Motor Trend Car Road Tests)
+
+Source of data (Henderson and Velleman (1981), Building multiple regression models interactively. Biometrics, 37, 391-411.)
+
+The data comprises fuel consumption and 10 aspects of automobile design and performance for 32 automobiles (1973-74 models).
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+require(plotly)
+library(datasets)
+head(mtcars, 3)
+```
+
+## Slide 4
+mtcars dataset - A data frame with 32 observations on 11 variables.
+
+- [, 1]	mpg	Miles/(US) gallon
+- [, 2]	cyl	Number of cylinders
+- [, 3]	disp	Displacement (cu.in.)
+- [, 4]	hp	Gross horsepower
+- [, 5]	drat	Rear axle ratio
+- [, 6]	wt	Weight (lb/1000)
+- [, 7]	qsec	1/4 mile time
+- [, 8]	vs	V/S
+- [, 9]	am	Transmission (0 = automatic, 1 = manual)
+- [,10]	gear	Number of forward gears. - [,11]	carb	Number of carburetors.
+
+## Slide 5
+
+```{r, echo = TRUE, warnings = FALSE, message = FALSE}
+plot_ly(mtcars, x = ~wt, y = ~mpg, type = "scatter",
+        color = ~factor(cyl), size = ~hp)
+```       
+
+## Slide 6
+
+Analysis - main code
+
+  formulaTextPoint <- reactive({
+    paste("mpg ~", "as.integer(", input$variable, ")")  })
+
+  fit <- reactive({
+    lm(as.formula(formulaTextPoint()), data=mpgData)  })
+  ...
+  output$fit <- renderPrint({
+    summary(fit()) })
+
+  output$mpgPlot <- renderPlot({
+    with(mpgData, {
+      plot(as.formula(formulaTextPoint()))
+      abline(fit(), col=2)
+    })  })
